@@ -245,17 +245,17 @@ found:
         vk_check(vkQueueSubmit(queue,1,&si,fence), "vkQueueSubmit");
         vk_check(vkWaitForFences(dev,1,&fence, VK_TRUE, UINT64_C(60)*1000*1000*1000), "vkWaitForFences");
 
-        uint64_t t0=0, t1=0; // timestamp ticks
-        vk_check(vkGetQueryPoolResults(dev, qp, 0, 2, sizeof(uint64_t)*2, &t0, sizeof(uint64_t),
+        uint64_t ts[2] = {0, 0}; // timestamp ticks
+        vk_check(vkGetQueryPoolResults(dev, qp, 0, 2, sizeof(ts), ts, sizeof(uint64_t),
                     VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT), "vkGetQueryPoolResults");
-        // We read both, since we passed a pointer to t0 only (layout: t0 then t1)
-        std::memcpy(&t1, ((uint8_t*)&t0)+sizeof(uint64_t), sizeof(uint64_t));
-        double ns = double(t1 - t0) * tsPeriodNs;
+        double ns = double(ts[1] - ts[0]) * tsPeriodNs;
         return ns; // nanoseconds
     };
 
     // Baseline measure for relative frequency estimation
-    double baseline_ns = record_once(args.iters, args.seed0);
+    double baseline_ns = -1;
+    //record_once(args.iters, args.seed0);
+    //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     auto iso_now = [](){
         using clock = std::chrono::system_clock;
@@ -277,6 +277,7 @@ found:
         uint32_t seed = args.seed0 + i*16699u;
         double ns = record_once(args.iters, seed);
         double ms = ns / 1.0e6;
+        if (baseline_ns < 0) baseline_ns = ns;
         double rel_freq = baseline_ns / ns; // >1.0 means faster than baseline
         std::printf("[%4u/%4u] %.3f ms  (rel_freq=%.3f)\n", i+1, args.loops, ms, rel_freq);
         std::fprintf(csv, "%s,%.6f,%.6f,%u,%u\n", iso_now().c_str(), ms, rel_freq, args.iters, args.invocations);
