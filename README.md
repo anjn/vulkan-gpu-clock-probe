@@ -12,10 +12,9 @@ cmake --build build --config Release
 
 ## Run
 ```
-
-clock-probe.exe --iters 20000 --invocations 1048576 --loops 600 --interval_ms 1000 --csv out.csv
-
+.\build\Release\clock-probe.exe --iters 4000 --invocations 1048576 --loops 600 --interval_ms 1 --csv out.csv
 ```
+
 Tune `--iters` so a single dispatch lasts ~30–80 ms. Too short => noisy; too long => slow sampling.
 
 ## CSV columns
