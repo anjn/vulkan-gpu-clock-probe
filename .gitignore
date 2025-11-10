@@ -1,0 +1,10 @@
+/build
+*.mjpeg
+*.mjpg
+*.jpeg
+*.jpg
+*.nv12
+*.pdb
+
+.vscode
+out.csv
